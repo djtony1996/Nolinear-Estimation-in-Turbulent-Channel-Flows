@@ -23,9 +23,9 @@ def get_estimation_one_wavenumber(kx,ky,N_wave,dkx,dky,z_mea_index,nz, Retau, ch
     kx_index = int(kx/dkx * (kx>=0) + (2*N_wave + 2 - kx/dkx) * (kx<0))
     ky_index = int(ky/dky)
 
-    true_uF_one_mea = np.squeeze(true_uF[z_mea_index,ky_index,kx_index,:]).conj().T
-    true_vF_one_mea = np.squeeze(true_vF[z_mea_index,ky_index,kx_index,:]).conj().T
-    true_wF_one_mea = np.squeeze(true_wF[z_mea_index,ky_index,kx_index,:]).conj().T
+    true_uF_one_mea = np.squeeze(true_uF[z_mea_index,ky_index,kx_index,:]).T
+    true_vF_one_mea = np.squeeze(true_vF[z_mea_index,ky_index,kx_index,:]).T
+    true_wF_one_mea = np.squeeze(true_wF[z_mea_index,ky_index,kx_index,:]).T
 
     z_mea = z_whole[z_mea_index]
 
@@ -41,7 +41,7 @@ def get_estimation_one_wavenumber(kx,ky,N_wave,dkx,dky,z_mea_index,nz, Retau, ch
 
     _, vel_est, _ = lsim(chan_whole_c,input,t_array)
     
-    return vel_est
+    return vel_est, kx, ky
     
     
 
@@ -120,9 +120,9 @@ if __name__ == '__main__':
         v_F = ifft_xy(v)
         w_F = ifft_xy(w)
         
-        true_uF[:,:,:,k_index] = u[:, :N_wave+1, np.concatenate((np.arange(0, N_wave+1,1), np.arange(nx-N_wave,nx,1)))]
-        true_vF[:,:,:,k_index] = v[:, :N_wave+1, np.concatenate((np.arange(0, N_wave+1,1), np.arange(nx-N_wave,nx,1)))]
-        true_wF[:,:,:,k_index] = w[:, :N_wave+1, np.concatenate((np.arange(0, N_wave+1,1), np.arange(nx-N_wave,nx,1)))]
+        true_uF[:,:,:,k_index] = u_F[:, :N_wave+1, np.concatenate((np.arange(0, N_wave+1,1), np.arange(nx-N_wave,nx,1)))]
+        true_vF[:,:,:,k_index] = v_F[:, :N_wave+1, np.concatenate((np.arange(0, N_wave+1,1), np.arange(nx-N_wave,nx,1)))]
+        true_wF[:,:,:,k_index] = w_F[:, :N_wave+1, np.concatenate((np.arange(0, N_wave+1,1), np.arange(nx-N_wave,nx,1)))]
     
     
     result_ids = [get_estimation_one_wavenumber.remote(kx,ky,N_wave,dkx,dky,z_mea_index,nz, Retau, channelRe, z_whole, whe_eddyv, dist_var, noise_var,Ts,t_array,true_uF,true_vF,true_wF)
@@ -241,6 +241,7 @@ input = np.hstack([np.zeros((len(t_array),nz-1)),
                   true_wF_one_mea
                   ])
 
+_, vel_est, _ = lsim(chan_whole_c,input,t_array)
 _, vel_est, _ = lsim(chan_whole_c,input,t_array)
 
 
